@@ -41,14 +41,14 @@ void Add_elem(binary_tree* Tree, int val){
         Tree->root->value = val;
         Tree->amount++;
     } else {
-        Add_elem(Tree->root, val);
+        Add_with_leaf(Tree->root, val);
     }
 }
 
 leaf* find_val(binary_tree* Tree, int val){
-    //!Returns pointer to the parent, if there is an element with val;
-    //!In case when val == root, returns the pointer to the root;
-    //!When there is not such element, returns nullptr;
+    //Returns pointer to the parent, if there is an element with val;
+    //In case when val == root, returns the pointer to the root;
+    //When there is not such element, returns nullptr;
     leaf* curr_leaf = Tree->root;
     leaf* parent_leaf = Tree->root;
     bool flag = false; //it is true, if the element with val exists.
@@ -145,3 +145,87 @@ void remove_by_value(binary_tree* Tree, int val){
         }
     Tree->amount--;
 }
+}
+
+void pre_order_by_leaf(leaf* curr_leaf){
+    //!You are not to use it;
+    std::cout << curr_leaf->value << " ";
+    if (curr_leaf->left != nullptr){
+        pre_order_by_leaf(curr_leaf->left);
+    }
+    if (curr_leaf->right != nullptr){
+        pre_order_by_leaf(curr_leaf->right);
+    }
+}
+
+void pre_order_travers(binary_tree* Tree){
+    if (Tree->root != nullptr){
+        pre_order_by_leaf(Tree->root);
+    } else {
+        std::cout << "Null" << std::endl;
+    }
+}
+
+void inf_order_by_leaf(leaf* curr_leaf){
+    //!You are not to use it;
+    if (curr_leaf->left != nullptr){
+        pre_order_by_leaf(curr_leaf->left);
+    }
+    std::cout << curr_leaf->value << " ";
+    if (curr_leaf->right != nullptr){
+        pre_order_by_leaf(curr_leaf->right);
+    }
+}
+
+void inf_order_travers(binary_tree* Tree){
+    if (Tree->root != nullptr){
+        inf_order_by_leaf(Tree->root);
+    } else {
+        std::cout << "Null" << std::endl;
+    }
+}
+
+void post_order_by_leaf(leaf* curr_leaf){
+    //!You are not to use it;
+    if (curr_leaf->left != nullptr){
+        pre_order_by_leaf(curr_leaf->left);
+    }
+    if (curr_leaf->right != nullptr){
+        pre_order_by_leaf(curr_leaf->right);
+    }
+    std::cout << curr_leaf->value << " ";
+}
+
+void post_order_travers(binary_tree* Tree){
+    if (Tree->root != nullptr){
+        post_order_by_leaf(Tree->root);
+    } else {
+        std::cout << "Null" << std::endl;
+    }
+}
+
+void find_all_leaves_by_leaf(leaf* curr_leaf){
+    //!You are not to use it
+    if (curr_leaf->left != nullptr){
+        find_all_leaves_by_leaf(curr_leaf->left);
+    }
+    if (curr_leaf->right != nullptr){
+        find_all_leaves_by_leaf(curr_leaf->right);
+    }
+    if ((curr_leaf->left == nullptr) && (curr_leaf->right == nullptr)){
+        std::cout << curr_leaf->value;
+    }
+}
+
+void find_all_leaves(binary_tree* Tree){
+    if (Tree->root != nullptr){
+        find_all_leaves_by_leaf(Tree->root);
+    } else {
+        std::cout << "Null" << std::endl;
+    }
+}
+
+int main(){
+
+}
+
