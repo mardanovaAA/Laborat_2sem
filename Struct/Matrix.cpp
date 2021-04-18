@@ -26,6 +26,17 @@ void delete_mat(Matrix_str* mat2del){
     mat2del->mat_size = 0;
 }
 
+Matrix_str* get_mat(int N){
+    Matrix_str* Mat = new Matrix_str;
+    Mat = create_N(N);
+    for (int line = 0; line < N; line++){
+        for (int colomn = 0; colomn < N; colomn++){
+            std::cin >> Mat->mat_arr[line][colomn];
+        }
+    }
+    return Mat;
+}
+
 Matrix_str* native_mult(Matrix_str* mat_first, Matrix_str* mat_second){
     //!the sizes of matrix must be the same;
     //multiplies matrices and return the pointer to the result;
@@ -85,7 +96,7 @@ Matrix_str* minus_mat(Matrix_str* Mat_first, Matrix_str* Mat_second, bool Del = 
     return Mat_res;
 }
 
-Matrix_str* add_nulls(Matrix_str* Mat2add){
+Matrix_str* add_nulls(Matrix_str* Mat2add, bool Del = false){
     //complete the matrix with null lines and columns to the size of the nearest degree of 2;
     //the function returns the completed matrix and don't change the initial;
     int New_size = 1;
@@ -109,11 +120,13 @@ Matrix_str* add_nulls(Matrix_str* Mat2add){
             Mat_new->mat_arr[line][column] = 0;
         }
     }
-    delete_mat(Mat2add);
+    if (Del){
+        delete_mat(Mat2add);
+    }
     return Mat_new;
 }
 
-Matrix_str* cut_nulls(Matrix_str* Mat2cut, int size2cut){
+Matrix_str* cut_nulls(Matrix_str* Mat2cut, int size2cut, bool Del = false){
     //cut matrix to the size2cut (delete the null lines and columns);
     //delete the initial matrix and return the pointer to the new;
     Matrix_str* Mat_new = new Matrix_str;
@@ -123,7 +136,9 @@ Matrix_str* cut_nulls(Matrix_str* Mat2cut, int size2cut){
             Mat_new->mat_arr[line][column] = Mat2cut->mat_arr[line][column];
         }
     }
-    delete_mat(Mat2cut);
+    if (Del){
+        delete_mat(Mat2cut);
+    }
     return Mat_new;
 }
 
@@ -132,8 +147,8 @@ Matrix_str* copy_part(Matrix_str* Mat2copy, int line_start, int line_finish, int
     //!The part to copy must be the square matrix (line_finish - line_start == column_finish - column_start);
     Matrix_str* Mat_res = new Matrix_str;
     Mat_res = create_N(line_finish - line_start + 1);
-    for (int line = line_start; line < line_finish + 1; line++){
-        for (int column = column_finish; column < column_finish + 1; column++){
+    for (int line = line_start; line <= line_finish; line++){
+        for (int column = column_start; column <= column_finish; column++){
             Mat_res->mat_arr[line - line_start][column - column_start] = Mat2copy->mat_arr[line][column];
         }
     }
@@ -160,7 +175,7 @@ Matrix_str* take_part(Matrix_str* Mat2part, int number_part){
     return Mat_new;
 }
 
-void add_to_C(Matrix_str* C, Matrix_str* what_add, int place){
+void add_to_C(Matrix_str* C, Matrix_str* what_add, int place, bool Del = false){
     int line_start, line_finish, column_start, column_finish;
     switch (place){
         case 1:
@@ -193,35 +208,45 @@ void add_to_C(Matrix_str* C, Matrix_str* what_add, int place){
             C->mat_arr[line][column] = what_add->mat_arr[line - line_start][column - column_start];
         }
     }
+    if (Del) {
+        delete_mat(what_add);
+    }
 }
 
 void calc_C(Matrix_str* C, Matrix_str** P){
-    add_to_C(C, sum_mat(sum_mat(P[0], P[6]), minus_mat(P[3], P[4]), true), 1);
-    add_to_C(C, sum_mat(P[2], P[4]), 2);
-    add_to_C(C, sum_mat(P[1], P[3]), 3);
-    add_to_C(C, sum_mat(sum_mat(P[2], P[5]), minus_mat(P[0], P[1]), true), 4);
+    add_to_C(C, sum_mat(sum_mat(P[0], P[6]), minus_mat(P[3], P[4]), true), 1, true);
+    add_to_C(C, sum_mat(P[2], P[4]), 2, true);
+    add_to_C(C, sum_mat(P[1], P[3]), 3, true);
+    add_to_C(C, sum_mat(sum_mat(P[2], P[5]), minus_mat(P[0], P[1]), true), 4, true);
 }
 
-
-Matrix_str* multi_mat(Matrix_str* Mat_first, Matrix_str* Mat_second, bool Del = true){
+Matrix_str* multi_mat(Matrix_str* Mat_first, Matrix_str* Mat_second, bool Del = false, bool recurs = false){
     //multiply matrices with the Strassen algoritm;
+    //Del is true, if you need to delete initial matix;
+    //You are not to use recurse;
+    int initial_size = Mat_first->mat_size;
     Matrix_str* A = new Matrix_str;
     Matrix_str* B = new Matrix_str;
     Matrix_str* C = new Matrix_str;
     //A*B=C;
-    A = add_nulls(Mat_first);
-    B = add_nulls(Mat_second);
-    if (A->mat_size <= 4){
+    if (recurs){
+        A = Mat_first;
+        B = Mat_second;
+    } else {
+        A = add_nulls(Mat_first);
+        B = add_nulls(Mat_second);
+    }
+    if (A->mat_size <= 64){
         C = native_mult(A,B);
     } else {
         Matrix_str** P = new Matrix_str*[7];
-        P[0] = multi_mat(sum_mat(take_part(A, 1), take_part(A, 4), true), sum_mat(take_part(B, 1), take_part(B, 4)));
-        P[1] = multi_mat(sum_mat(take_part(A, 3), take_part(A, 4), true), take_part(B, 1));
-        P[2] = multi_mat(take_part(A, 1), minus_mat(take_part(B, 2), take_part(B, 4), true));
-        P[3] = multi_mat(take_part(A, 4), minus_mat(take_part(B, 3), take_part(B, 1), true));
-        P[4] = multi_mat(sum_mat(take_part(A, 1), take_part(A, 2), true), take_part(B, 4));
-        P[5] = multi_mat(minus_mat(take_part(A, 3), take_part(A, 1), true), sum_mat(take_part(B, 1), take_part(B, 2)));
-        P[6] = multi_mat(minus_mat(take_part(A, 2), take_part(A, 4), true), sum_mat(take_part(B, 3), take_part(B, 4)));
+        P[0] = multi_mat(sum_mat(take_part(A, 1), take_part(A, 4), true), sum_mat(take_part(B, 1), take_part(B, 4), true), true, true);
+        P[1] = multi_mat(sum_mat(take_part(A, 3), take_part(A, 4), true), take_part(B, 1), true, true);
+        P[2] = multi_mat(take_part(A, 1), minus_mat(take_part(B, 2), take_part(B, 4), true), true, true);
+        P[3] = multi_mat(take_part(A, 4), minus_mat(take_part(B, 3), take_part(B, 1), true), true, true);
+        P[4] = multi_mat(sum_mat(take_part(A, 1), take_part(A, 2), true), take_part(B, 4), true, true);
+        P[5] = multi_mat(minus_mat(take_part(A, 3), take_part(A, 1), true), sum_mat(take_part(B, 1), take_part(B, 2), true), true, true);
+        P[6] = multi_mat(minus_mat(take_part(A, 2), take_part(A, 4), true), sum_mat(take_part(B, 3), take_part(B, 4), true), true, true);
         C = create_N(A->mat_size);
         calc_C(C, P);
         for (int i = 0; i < 7; i++){
@@ -231,40 +256,27 @@ Matrix_str* multi_mat(Matrix_str* Mat_first, Matrix_str* Mat_second, bool Del = 
     }
     delete_mat(A);
     delete_mat(B);
-    if (Del) {
+    if ((Del) && (!recurs)){
         delete_mat(Mat_first);
         delete_mat(Mat_second);
     }
-    return C;
+    if (recurs){
+        return C;
+    } else {
+        return cut_nulls(C, initial_size, true);
+    }
 }
 
 int main(){
     Matrix_str* Mat1 = new Matrix_str;
-    Mat1 = create_N(4);
-    for (int line = 0; line < 4; line++){
-        for (int column = 0; column < 4; column++){
-            if (column == line){
-                Mat1->mat_arr[line][column] = 1;
-            } else {
-                Mat1->mat_arr[line][column] = 0;
-            }
-        }
-    }
+    int N = 5;
+    Mat1 = get_mat(N);
     Matrix_str* Mat2 = new Matrix_str;
-    Mat2 = create_N(4);
-    for (int line = 0; line < 4; line++){
-        for (int column = 0; column < 4; column++){
-            if (column == line){
-                Mat2->mat_arr[line][column] = 1;
-            } else {
-                Mat2->mat_arr[line][column] = 0;
-            }
-        }
-    }
-    Matrix_str* res = new Matrix_str;
-    res = multi_mat(Mat1, Mat2);
-    print_mat(res);
-    delete_mat(res);
+    Mat2 = get_mat(N);
+    Matrix_str* Mat_res = new Matrix_str;
+    Mat_res = multi_mat(Mat1, Mat2, true);
+    print_mat(Mat_res);
+    delete_mat(Mat_res);
     return 0;
 }
 
