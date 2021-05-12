@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cstdlib>
+#include <chrono>
+#include <fstream>
 
 void print_arr(int* arr, int len){
     for (int i = 0; i < len; i++){
@@ -230,16 +232,26 @@ void quick_sort(int* arr, int len, bool mod = true){
 }
 
 int main(){
-    int N;
-    std::cin >> N;
-    int* arr = new int[N];
-    for (int i = 0; i < N; i++){
-        std::cin >> arr[i];
+    int N = 10;
+    std::ofstream out;
+    out.open("Time_data.txt");
+    while (N < 500000){
+        int* arr = new int[N];
+        for (int i = 0; i < N; i++){
+            arr[i] = rand();
+        }
+        auto time_begin = std::chrono::steady_clock::now();
+        quick_sort(arr, N, true);
+        auto time_finish = std::chrono::steady_clock::now();
+        //print_arr(arr, N);
+        auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_finish - time_begin);
+        if (out.is_open()){
+            out << elapsed_ms.count() << std::endl;
+        }
+        std::cout << N << std::endl;
+        delete [] arr;
+        N *= 5;
     }
-    quick_sort(arr, N, true);
-    print_arr(arr, N);
-    quick_sort(arr, N, false);
-    print_arr(arr, N);
-    delete [] arr;
+    out.close();
     return 0;
 }
